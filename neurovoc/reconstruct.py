@@ -50,9 +50,14 @@ def reconstruct_neurogram(
         fmin=min_freq,
         fmax=max_freq,
     )
+    
+    # Estimate linear-frequency power spectrogram via non-negative least squares
     inverse = librosa.util.nnls(mel_basis, M)
+    
+    # Convert power spectrum to magnitude spectrum
     inverse = np.power(inverse, 1.0 / 2.0, out=inverse)
 
+    # Reconstruct time-domain waveform using Griffin–Lim phase estimation
     reconstructed = librosa.feature.inverse.griffinlim(
         inverse,
         n_iter=32,
@@ -72,6 +77,13 @@ def reconstruct_neurogram(
 
 
 def downsample(data: np.ndarray, n_hop: int) -> np.ndarray:
+    """
+    Downsample the neurogram along the temporal axis using polyphase resampling
+    to reduce reconstruction cost. The target length is ceil(N / n_hop), where
+    n_hop is the hop size. Resampling is performed with a rational factor reduced
+    to lowest terms and includes anti-aliasing filtering. Output values are
+    clipped to [0, 1].
+    """
     n_s = int(np.ceil(data.shape[1] / n_hop))
     g = gcd(n_s, data.shape[1])
     data = np.array(
@@ -81,8 +93,14 @@ def downsample(data: np.ndarray, n_hop: int) -> np.ndarray:
 
 
 def power_scale(data, ref_db: float = 50.0):
+    """
+    Map normalized neurogram values to a decibel-like range [-80, 0] and
+    convert to a linear power scale relative to a reference level.
+    """
     data = min_max_scale(data, -80, 0, data_min=0, data_max=1)
-    data = librosa.db_to_power(data, ref=ref_db)
+    # Convert dB-scaled neurogram to power scale relative to a 50 dB reference 
+    # ( Mel-band power representation)
+    data = librosa.db_to_power(data, ref=ref_db) 
     return data
 
 
@@ -109,8 +127,12 @@ def reconstruct(
         n_fft,
         n_hop,
     )
+    
+    # Resample reconstructed waveform to the original audio sampling rate
     reconstructed = librosa.resample(
         reconstructed, orig_sr=neurogram.sample_rate, target_sr=target_sr
     )
+    
+    # Normalize RMS level to the target dB full scale
     reconstructed = scale_to_target_dbfs(reconstructed, target_db_fs)
     return reconstructed
