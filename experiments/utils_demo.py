@@ -3,7 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy
 from IPython.display import Audio
+import os
+from IPython.display import Audio
+import soundfile as sf
 
+root = "../data"
 
 def get_melspectrogram(y, sr, n_fft, hops):
     S = librosa.feature.melspectrogram(
@@ -25,7 +29,7 @@ def plot_spectro_vs_neurogram(S_db, y,neurogram_specres, sr, hops, soundname="so
     gs = fig.add_gridspec(2, 2,  height_ratios=[1, 2])
 
     ax1 = fig.add_subplot(gs[0, :])
-    ax1.plot(np.arange(len(y)) * (1/sr), y, label=soundname, color='#4682B4', linewidth=4)
+    ax1.plot(np.arange(len(y)) * (1/sr), y, label=soundname[:-4], color='#4682B4', linewidth=4)
     ax1.plot(np.arange(len(y)) * (1/sr), y, color='white', linewidth=.05)
     ax1.grid()
     ax1.legend()
@@ -51,7 +55,7 @@ def plot_spectro_vs_neurogram(S_db, y,neurogram_specres, sr, hops, soundname="so
         t, neurogram_specres.frequencies, sp_data_phast, cmap=cmap
     )
 
-    ax2.set_title("Spectogram")
+    ax2.set_title("Spectrogram")
     ax3.set_title("Neurogram")
 
     ax2.set_ylabel("[Hz]")
@@ -73,7 +77,7 @@ def plot_and_play_reconstructed(original, reconstructed, fs, mel_scale, soundfil
     m = 2
     cmap = 'cividis'
 
-    for ((ax1, ax2), y, title) in zip(axes.T, (original, reconstructed), (soundfile, "EH Vocoded")):
+    for ((ax1, ax2), y, title) in zip(axes.T, (original, reconstructed), (soundfile[:-4], "EH Vocoded")):
         t_sound = np.arange(len(y)) / fs   
         ax1.plot(t_sound, y, color='#4682B4', linewidth=4)
         ax1.plot(t_sound, y, color='white', linewidth=.05)
@@ -105,3 +109,43 @@ def plot_and_play_reconstructed(original, reconstructed, fs, mel_scale, soundfil
 
     plt.tight_layout()
     # plt.savefig("choice_no_noise.png", dpi=600)
+    
+def rms_db(y):
+    rms = np.sqrt(np.mean(y**2))
+    return 20 * np.log10(rms)
+
+def mix_v2(stim, noise, snr):
+    mask = np.nonzero(stim)
+    db_stim = rms_db(stim[mask])
+    db_noise = rms_db(noise)
+    db_tgt = db_noise + snr
+    gain = 10 ** ((db_tgt - db_stim) / 20)
+    stim_scaled = stim * gain
+    mixed = noise + stim_scaled
+    return mixed   
+
+def scale_to_target_dbfs(y, target_dbfs):
+    current_dbfs = rms_db(y)
+    diff = target_dbfs - current_dbfs
+    gain = 10 ** (diff / 20)
+    return y * gain
+
+def mix_sound_with_noise(soundfile, snr=-4):
+    noise = os.path.join(root, "din/tripletnoise.wav")
+    noise_y, sr = librosa.load(noise, sr=None)
+    filename = os.path.join(root, soundfile)
+    sound_y, sr = librosa.load(filename, sr=sr)
+    noise_seg = noise_y[100:100+ len(sound_y)]
+    mixed = scale_to_target_dbfs(mix_v2(sound_y, noise_seg, snr), rms_db(sound_y))
+    t = np.arange(len(sound_y)) / sr
+
+    f, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 5), sharey=True)
+    ax1.plot(t, noise_seg)
+    ax2.plot(t, sound_y)
+    ax3.plot(t, mixed)
+
+    display(Audio(data=mixed, rate=sr))
+    soundname_4db_snr = f"{soundfile[:-4]}_with_noise_{snr}db_snr.wav"
+    filename_4db_snr = os.path.join(root, soundname_4db_snr)
+    sf.write(filename_4db_snr, mixed, sr)
+    return soundname_4db_snr
