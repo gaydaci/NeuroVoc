@@ -175,3 +175,5 @@ cython_debug/
 
 *_neurogram.pkl
 *_reconstructed.wav
+
+data/cli-tests/*
