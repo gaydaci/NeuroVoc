@@ -8,6 +8,7 @@ from IPython.display import Audio
 import soundfile as sf
 
 root = "../data"
+fs = 17400
 
 def get_melspectrogram(y, sr, n_fft, hops):
     S = librosa.feature.melspectrogram(
@@ -130,7 +131,7 @@ def scale_to_target_dbfs(y, target_dbfs):
     gain = 10 ** (diff / 20)
     return y * gain
 
-def mix_sound_with_noise(soundfile, snr=-4):
+def mix_sound_with_noise(soundfile, snr=-4, sr=fs):
     noise = os.path.join(root, "din/tripletnoise.wav")
     noise_y, sr = librosa.load(noise, sr=None)
     filename = os.path.join(root, soundfile)
