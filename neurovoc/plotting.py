@@ -5,7 +5,7 @@ import librosa
 import matplotlib.ticker as mplticker
 from matplotlib.colors import LogNorm, Normalize
 import scipy.signal
-
+from matplotlib.ticker import FormatStrFormatter
 
 def audio_vs_reconstructed(
     audio_signal,
@@ -46,6 +46,7 @@ def audio_vs_reconstructed(
             vmin=-80,
         )
         ax.set_xlabel(None)
+        ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
         if i == 1:
             ax.set_title("reconstructed")
             fig.colorbar(img, ax=ax, format="%+2.0f dB")

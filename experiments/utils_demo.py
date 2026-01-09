@@ -142,9 +142,13 @@ def mix_sound_with_noise(soundfile, snr=-4, sr=fs):
 
     f, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 5), sharey=True)
     ax1.plot(t, noise_seg)
+    ax1.set_title("Noise")
     ax2.plot(t, sound_y)
+    ax2.set_title("Original Sound")
     ax3.plot(t, mixed)
-
+    ax3.set_title(f"Mixed Sound at {snr} dB SNR")
+    f.tight_layout()
+    
     display(Audio(data=mixed, rate=sr))
     soundname_4db_snr = f"{soundfile[:-4]}_with_noise_{snr}db_snr.wav"
     filename_4db_snr = os.path.join(root, soundname_4db_snr)
