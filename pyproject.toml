@@ -29,12 +29,13 @@ dependencies = [
     "click",
     "pandas",
     "fastdtw",
-    "tqdm"
+    "tqdm",
+    "pyfar"
 ]
 
 [project.urls]
-Homepage = "https://github.com/jacobdenobel/neurovoc"
-Repository = "https://github.com/jacobdenobel/neurovoc"
+Homepage = "https://github.com/gaydaci/neurovoc"
+Repository = "https://github.com/gaydaci/neurovoc"
 
 [tool.setuptools]
 packages = ["neurovoc"]

@@ -4,6 +4,24 @@
 *A biologically plausible vocoder for auditory perception modeling and cochlear implant simulation.*
 
 ---
+## SAM Local Installation Instructions
+
+All the SCS implementations including SpecRes are part of the PHAST repository, which I have also forked and commented important code sections
+
+PHAST needs python 3.12
+
+```bash
+conda create -n neurovoc-demo python=3.12
+conda activate phast
+git clone https://github.com/gaydaci/PHAST.git
+cd PHAST
+pip install -e .
+cd ..
+git clone https://github.com/gaydaci/NeuroVoc.git
+cd NeuroVoc
+pip install -e .
+```
+## SAM Demo Notebook at [experiments/demo.ipynb](experiments/demo.ipynb)
 
 ## 🔍 Overview
 
@@ -23,19 +41,6 @@ The diagram above illustrates the NeuroVoc processing pipeline:
 This modular flow enables the flexible substitution of different models or model parameters while maintaining a consistent reconstruction backend.
 
 ---
-## SAM Local Installation Instructions
-
-All the SCS implementations including SpecRes are part of the PHAST repository, which I have also forked and mainly commented important code sections
-
-PHAST needs python 3.12
-
-```bash
-conda create -n neurovoc-demo python=3.12
-conda activate phast
-git clone https://github.com/gaydaci/PHAST.git
-cd PHAST
-pip install -e .
-```
 ## 📁 Repository Structure
 
 ```
